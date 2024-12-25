@@ -1,3 +1,4 @@
+use console::Term;
 use mob::Mob;
 use player::Player;
 use rand::{rng, Rng};
@@ -41,4 +42,20 @@ impl Spawner {
             let _ = &self.mobs.push(mob);
         }
     }
+}
+
+pub fn get_new_player() -> Result<player::Player, Box<dyn std::error::Error>> {
+    let term = Term::stdout();
+
+    term.write_line("What should i call you?")?;
+    let name: String = term.read_line()?;
+    Ok(player::Player {
+        id: 0,
+        name: name.trim().to_string(),
+        health: 1000,
+        damage: 1,
+        crit: 20,
+        level: 1,
+        xp: 0,
+    })
 }

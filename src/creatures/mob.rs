@@ -12,6 +12,7 @@ pub struct Mob {
     pub level: u8,
 }
 
+#[allow(dead_code)]
 impl Mob {
     pub fn attack(&mut self, target: &mut Player) -> bool {
         let chance: u8 = rng().random_range(1..=100);

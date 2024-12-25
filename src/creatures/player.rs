@@ -4,6 +4,7 @@ use super::mob::Mob;
 
 #[allow(dead_code)]
 pub struct Player {
+    pub id: u8,
     pub name: String,
     pub health: i16,
     pub damage: u16,

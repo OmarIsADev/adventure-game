@@ -1,29 +1,50 @@
 mod creatures;
+mod data;
 
 use console::{Style, Term};
-use creatures::{player, Spawner};
+use creatures::{get_new_player, player, Spawner};
+use data::db;
 use rand::{rng, Rng};
 use std::{thread, time::Duration};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let term = Term::stdout();
+    let term: Term = Term::stdout();
+    let mut player: player::Player;
 
     term.clear_screen()?;
     term.write_line("Hello Sir, Welcome to Omar's Adventure Game!")?;
     thread::sleep(Duration::from_millis(1000));
 
-    term.write_line("What should i call you?")?;
-    let name: String = term.read_line().unwrap();
-    name.trim().to_string();
+    term.clear_screen()?;
+    let players = data::db::db::get_players();
 
-    let mut player = player::Player {
-        name: name.clone(),
-        health: 1000,
-        damage: 1,
-        crit: 20,
-        level: 1,
-        xp: 0,
-    };
+    if players.is_err() {
+        // If player doesnt exists, ask for his name and initialize new player
+
+        player = get_new_player()?;
+    } else {
+        // If player exists ask to create new one or not
+        term.write_line("Would you like to create new save? (y/n)")?;
+
+        let answer = term.read_char().unwrap();
+
+        term.clear_screen()?;
+
+        if answer == 'y' {
+            player = get_new_player()?;
+            player.id = players.unwrap().len() as u8;
+        } else {
+            term.write_line("Select save: ")?;
+
+            for (_, player) in players.unwrap().iter().enumerate() {
+                term.write_line(&format!("{}. {}", player.0 + 1, player.1))?;
+            }
+
+            let index: usize = term.read_line().unwrap().trim().parse().unwrap();
+
+            player = db::db::load_player(index as u8 - 1)?;
+        }
+    }
 
     term.clear_screen()?;
     term.write_line(&format!(
@@ -164,6 +185,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     thread::sleep(Duration::from_millis(500));
+
+    db::db::save_player(&player)?;
 
     Ok(())
 }
