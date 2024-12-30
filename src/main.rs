@@ -79,6 +79,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     "Your health is: {}",
                     term.style().red().apply_to(player.health)
                 );
+
+                let random_mob_index = rng().random_range(0..=spawner.mobs.len() - 1);
+
+                // Mob attack Player
+                let mut mob = spawner.mobs[random_mob_index].clone();
+
+                mob.attack(&mut player);
+
+                thread::sleep(Duration::from_millis(500));
+                println!("{} Attacked you!", mob.name);
+                println!("Your health is: {}", player.health)
             }
 
             'a' => {
@@ -130,6 +141,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         "{} health is: {}",
                         mob.name,
                         term.style().red().apply_to(mob.health)
+                    );
+
+                    // Mob attack Player
+                    mob.attack(&mut player);
+
+                    println!(
+                        "{} Attacked you back!, your health now is: {}",
+                        mob.name,
+                        term.style().red().apply_to(player.health)
                     );
 
                     spawner.mobs[index] = mob.clone();
