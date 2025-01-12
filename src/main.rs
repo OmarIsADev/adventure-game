@@ -1,9 +1,11 @@
 mod creatures;
 mod data;
+mod functions;
 
 use console::{Style, Term};
-use creatures::{get_new_player, player, Spawner};
+use creatures::{player, Spawner};
 use data::db;
+use functions::load_save::load_save;
 use rand::{rng, Rng};
 use std::{thread, time::Duration};
 
@@ -16,35 +18,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     thread::sleep(Duration::from_millis(1000));
 
     term.clear_screen()?;
-    let players = data::db::db::get_players();
 
-    if players.is_err() {
-        // If player doesnt exists, ask for his name and initialize new player
-
-        player = get_new_player()?;
-    } else {
-        // If player exists ask to create new one or not
-        term.write_line("Would you like to create new save? (y/n)")?;
-
-        let answer = term.read_char().unwrap();
-
-        term.clear_screen()?;
-
-        if answer == 'y' {
-            player = get_new_player()?;
-            player.id = players.unwrap().len() as u8;
-        } else {
-            term.write_line("Select save: ")?;
-
-            for (_, player) in players.unwrap().iter().enumerate() {
-                term.write_line(&format!("{}. {}", player.0 + 1, player.1))?;
-            }
-
-            let index: usize = term.read_line().unwrap().trim().parse().unwrap();
-
-            player = db::db::load_player(index as u8 - 1)?;
-        }
-    }
+    player = load_save();
 
     term.clear_screen()?;
     term.write_line(&format!(
@@ -52,7 +27,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Style::new().cyan().bold().apply_to(&player.name)
     ))?;
 
-    term.write_line("For help type '='")?;
+    term.write_line("For help press 'h'")?;
 
     thread::sleep(Duration::from_millis(1000));
 
@@ -68,7 +43,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         term.clear_screen()?;
 
         match key {
-            'h' => {
+            'd' => {
                 // Player heal and skip turn
                 player.health += 10;
                 term.write_line(&format!("You healed and skipped your turn"))?;
@@ -158,7 +133,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let _ = mob;
             }
 
-            'm' => {
+            'x' => {
                 // Display mobs
                 let mut index: u8 = 1;
 
@@ -187,12 +162,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 );
             }
 
-            '=' => {
+            'h' => {
                 // Help menu
-                term.write_line("h: Heal")?;
+                term.write_line("d: Heal")?;
                 term.write_line("a: Attack <mob_index>")?;
                 term.write_line("s: Status")?;
-                term.write_line("m: Display Mobs")?;
+                term.write_line("x: Display Mobs")?;
                 term.write_line("q: Quit")?;
             }
 
